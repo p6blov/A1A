@@ -1,0 +1,35 @@
+# --- Secrets: never commit ---
+.env
+.env.*
+!.env.example
+
+# --- Python ---
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+
+# --- Node / build output ---
+node_modules/
+frontend/dist/
+*.local
+
+# --- Stray root lockfile (there is no root package.json) ---
+/package-lock.json
+
+# --- Local AI tooling, editors ---
+.claude/
+.vscode/
+.idea/
+
+# --- Internal documents: kept outside the repository ---
+docs/
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+
+# --- Local release helper ---
+push-to-github.sh

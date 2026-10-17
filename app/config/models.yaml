@@ -1,0 +1,70 @@
+# Static fallback for the OpenRouter free-model catalog.
+#
+# The live list comes from OpenRouter's public /models endpoint (see
+# app/config/models.py) — free models rotate, so that is the source of truth.
+# This file is only used when the fetch fails (offline, rate-limited, schema
+# drift) so the agent picker in the UI always has something to offer.
+#
+# Snapshot taken 2026-07-31. Filtered the same way the live fetch filters:
+# id ends in ":free", lab in {openai, google, nvidia}, text output, and not a
+# classifier. Refresh it by running:
+#
+#   curl -s https://openrouter.ai/api/v1/models | python3 -c "..."   # see README
+#
+# Free models are capped at 20 requests/minute and 50 requests/day until 10
+# credits have been purchased on the account, then 1000/day.
+
+models:
+  - id: nvidia/nemotron-3-ultra-550b-a55b:free
+    name: "NVIDIA: Nemotron 3 Ultra (free)"
+    lab: nvidia
+    context_length: 1000000
+    max_completion_tokens: 65536
+
+  - id: nvidia/nemotron-3-super-120b-a12b:free
+    name: "NVIDIA: Nemotron 3 Super (free)"
+    lab: nvidia
+    context_length: 262144
+    max_completion_tokens: 262144
+
+  - id: nvidia/nemotron-3-nano-30b-a3b:free
+    name: "NVIDIA: Nemotron 3 Nano 30B A3B (free)"
+    lab: nvidia
+    context_length: 256000
+    max_completion_tokens: null
+
+  - id: nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free
+    name: "NVIDIA: Nemotron 3 Nano Omni (free)"
+    lab: nvidia
+    context_length: 256000
+    max_completion_tokens: null
+
+  - id: nvidia/nemotron-nano-12b-v2-vl:free
+    name: "NVIDIA: Nemotron Nano 12B 2 VL (free)"
+    lab: nvidia
+    context_length: 128000
+    max_completion_tokens: null
+
+  - id: nvidia/nemotron-nano-9b-v2:free
+    name: "NVIDIA: Nemotron Nano 9B V2 (free)"
+    lab: nvidia
+    context_length: 128000
+    max_completion_tokens: null
+
+  - id: google/gemma-4-31b-it:free
+    name: "Google: Gemma 4 31B (free)"
+    lab: google
+    context_length: 262144
+    max_completion_tokens: 32768
+
+  - id: google/gemma-4-26b-a4b-it:free
+    name: "Google: Gemma 4 26B A4B (free)"
+    lab: google
+    context_length: 262144
+    max_completion_tokens: 32768
+
+  - id: openai/gpt-oss-20b:free
+    name: "OpenAI: gpt-oss-20b (free)"
+    lab: openai
+    context_length: 131072
+    max_completion_tokens: 32768

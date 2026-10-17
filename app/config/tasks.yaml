@@ -1,0 +1,84 @@
+# Task-type → agent line-up mapping.
+# The orchestrator looks up the task name here to decide which agents to fan
+# out to, in parallel. Adding a new task type, switching providers, or giving
+# agents different roles is a config change — no code edits.
+#
+# The default line-up is entirely free-tier: OpenRouter `:free` models from
+# three different labs under the one OPENROUTER_API_KEY, so the fan-out is a
+# genuine cross-vendor second opinion at zero cost. The direct first-party
+# adapters (google, google-flash, openai, anthropic) stay wired in the registry
+# but are deliberately NOT listed here — add one to a task to use it.
+#
+# Free models are capped at 20 requests/minute and 50 requests/day per account
+# until 10 credits have been purchased, then 1000/day. Each agent below is one
+# request per turn, and a summarizer is one more.
+#
+# These are also editable per-request from the UI's agent panel, which sends its
+# own line-up and overrides everything here for that turn.
+#
+# Agents whose provider is missing credentials are skipped at runtime (and in
+# the UI's line-up). Agent order matters: without a summarizer (or when it is
+# skipped/fails), the final answer is the first *successful* response in this
+# order.
+#
+# Two equivalent shapes:
+#
+#   <task_name>:                        # full form: named roles; the same
+#     agents:                           # provider may appear several times
+#       - name: <agent_name>            # optional, defaults to the provider
+#         provider: <provider_name>
+#         model: <model_id>             # optional (defaults from settings.py)
+#         system: <system prompt>       # optional role prompt
+#     summarizer:                       # optional: synthesize the answers
+#       provider: <provider_name>       # runs once after the fan-in, only when
+#       model: <model_id>               # 2+ agents succeeded; one extra call
+#       system: <override prompt>       # optional (default in graph/nodes.py)
+#
+#   <task_name>:                        # shorthand: each provider becomes an
+#     providers: [<provider_name>, ...] # agent named after it, no roles
+#     model_overrides:
+#       <provider_name>: <model_id>
+#
+# `default` deliberately has no summarizer, keeping the free-tier default at
+# two calls per turn — add the block to any task to make it synthesize.
+
+# Two labs, one key. The `agents:` form is required here (not the `providers:`
+# shorthand) because both agents share the openrouter provider and differ only
+# by model — the shorthand names agents after the provider and would collide.
+default:
+  agents:
+    - name: gpt-oss
+      provider: openrouter
+      model: openai/gpt-oss-20b:free
+    - name: nemotron
+      provider: openrouter
+      model: nvidia/nemotron-3-super-120b-a12b:free
+
+research:
+  agents:
+    - name: researcher
+      provider: openrouter
+      model: nvidia/nemotron-3-ultra-550b-a55b:free
+      system: >
+        You are a meticulous researcher. Answer the request thoroughly but
+        concisely, distinguish established facts from interpretation, and
+        note any assumptions or uncertainty explicitly.
+    - name: skeptic
+      provider: openrouter
+      model: google/gemma-4-31b-it:free
+      system: >
+        You are a critical reviewer. Answer the request directly, but
+        challenge common assumptions, flag weak or missing evidence, and
+        point out edge cases or caveats others might miss.
+  # The smallest free model is plenty for merging two answers, and keeps the
+  # third call per turn cheap in latency.
+  summarizer:
+    provider: openrouter
+    model: nvidia/nemotron-nano-9b-v2:free
+
+# Single-agent example: task types can differ in line-up, not just models.
+code_review:
+  agents:
+    - name: reviewer
+      provider: openrouter
+      model: openai/gpt-oss-20b:free
